@@ -1,0 +1,70 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "AppLifecycleMiddleware",
+        "repositoryURL": "https://github.com/SwiftRex/AppLifecycleMiddleware.git",
+        "state": {
+          "branch": "main",
+          "revision": "03989c21c3ff97ac73b2cccceb3643473aef28d5",
+          "version": null
+        }
+      },
+      {
+        "package": "BridgeMiddleware",
+        "repositoryURL": "git@github.com:SwiftRex/BridgeMiddleware.git",
+        "state": {
+          "branch": "master",
+          "revision": "667b6b7f063478db3ba8265849c5aee18f52f858",
+          "version": null
+        }
+      },
+      {
+        "package": "LoggerMiddleware",
+        "repositoryURL": "https://github.com/SwiftRex/LoggerMiddleware.git",
+        "state": {
+          "branch": null,
+          "revision": "3c13c0387052069aacf907b5e8daa42ddb4f0463",
+          "version": "0.3.7"
+        }
+      },
+      {
+        "package": "ReachabilityMiddleware",
+        "repositoryURL": "https://github.com/SwiftRex/ReachabilityMiddleware.git",
+        "state": {
+          "branch": "master",
+          "revision": "98233b43affefec418aa78cf2a8e144cd33e4fae",
+          "version": null
+        }
+      },
+      {
+        "package": "ReactiveSwift",
+        "repositoryURL": "https://github.com/ReactiveCocoa/ReactiveSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "2c06e9421011a1a4cf57ea4bbcd8936843a6c9da",
+          "version": "6.6.1"
+        }
+      },
+      {
+        "package": "RxSwift",
+        "repositoryURL": "https://github.com/ReactiveX/RxSwift.git",
+        "state": {
+          "branch": null,
+          "revision": "7c17a6ccca06b5c107cfa4284e634562ddaf5951",
+          "version": "6.2.0"
+        }
+      },
+      {
+        "package": "SwiftRex",
+        "repositoryURL": "https://github.com/SwiftRex/SwiftRex.git",
+        "state": {
+          "branch": null,
+          "revision": "660ba8ec5a79bc30f152955f9d8ea0b69ba6b466",
+          "version": "0.8.6"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
