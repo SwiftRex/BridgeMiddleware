@@ -153,3 +153,14 @@ static let lifecycleToReachabilityActions: BridgeMiddleware =
         .bridge(\AppAction.lifecycle?.didBecomeActive --> AppAction.reachability(.startMonitoring), when: \.settings.shouldUseReachability)
         .bridge(\AppAction.lifecycle?.didEnterBackground --> AppAction.reachability(.stopMonitoring), when: \.settings.shouldUseReachability)
 ```
+
+## Bridging values
+
+If the original action holds certain value in its enum, you can optionally handover this associated value to the derived action, such as:
+```swift
+BridgeMiddleware()
+    .bridge(\AppAction.my?.tree?.originalActionThatHasString --> { handedOverString in AppAction.another(.part(.thisRequiredString(handedOverString))) })
+```
+
+To avoid the closure you can use custom operators in Swift, like `>>>` and `<<<`, just be sure that your forward/backward composition operator has higher
+precedence than the arrow `-->`, otherwise you will have to use parentheses.
