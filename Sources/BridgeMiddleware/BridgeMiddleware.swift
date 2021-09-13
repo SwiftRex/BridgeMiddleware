@@ -80,11 +80,11 @@ public func >=> <A, B, C>(_ left: @escaping (A) -> B?, _ right: @escaping (B) ->
 public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Middleware {
     struct Bridge {
         let actionTransformation: (InputActionType) -> OutputActionType?
-        let statePredicate: (GetState<StateType>) -> Bool
+        let statePredicate: (GetState<StateType>, InputActionType) -> Bool
         let bridgedAtSource: ActionSource
     }
 
-    private var bridges: [Bridge] = []
+    var bridges: [Bridge] = []
 
     public init() { }
 
@@ -116,7 +116,7 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
         bridges.append(
             Bridge(
                 actionTransformation: mapping,
-                statePredicate: stateAfterReducerPredicate,
+                statePredicate: { state, _ in stateAfterReducerPredicate(state) },
                 bridgedAtSource: ActionSource(file: file, function: function, line: line, info: nil)
             )
         )
@@ -146,7 +146,13 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
         line: UInt = #line,
         function: String = #function
     ) -> BridgeMiddleware {
-        bridge(keyPathChecker >=> outputAction, when: stateAfterReducerPredicate, file: file, line: line, function: function)
+        bridge(
+            keyPathChecker >=> outputAction,
+            when: stateAfterReducerPredicate,
+            file: file,
+            line: line,
+            function: function
+        )
     }
 
     /// Bridge an action to another derived action
@@ -191,7 +197,7 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
             else { return }
 
             self.bridges
-                .filter { actionBridge in actionBridge.statePredicate(getState) }
+                .filter { actionBridge in actionBridge.statePredicate(getState, action) }
                 .compactMap { actionBridge in
                     actionBridge
                         .actionTransformation(action)
