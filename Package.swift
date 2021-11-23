@@ -10,7 +10,7 @@ let package = Package(
         .library(name: "BridgeMiddlewareReactiveSwift", targets: ["BridgeMiddlewareReactiveSwift"])
     ],
     dependencies: [
-        .package(url: "https://github.com/SwiftRex/SwiftRex.git", from: "0.8.6")
+        .package(url: "https://github.com/SwiftRex/SwiftRex.git", from: "0.8.8")
     ],
     targets: [
         .target(name: "BridgeMiddlewareCombine", dependencies: [.product(name: "CombineRex", package: "SwiftRex")]),
