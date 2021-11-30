@@ -77,7 +77,7 @@ public func >=> <A, B, C>(_ left: @escaping (A) -> B?, _ right: @escaping (B) ->
     }
 }
 
-public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Middleware {
+public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: MiddlewareProtocol {
     struct Bridge {
         let actionTransformation: (InputActionType) -> OutputActionType?
         let statePredicate: (GetState<StateType>, InputActionType) -> Bool
@@ -181,23 +181,12 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
         bridge(keyPathChecker >=> (ignore >>> outputAction), when: stateAfterReducerPredicate, file: file, line: line, function: function)
     }
 
-    private var getState: GetState<StateType>?
-    private var output: AnyActionHandler<OutputActionType>?
-
-    public func receiveContext(getState: @escaping GetState<StateType>, output: AnyActionHandler<OutputActionType>) {
-        self.getState = getState
-        self.output = output
-    }
-
-    public func handle(action: InputActionType, from dispatcher: ActionSource, afterReducer: inout AfterReducer) {
-        afterReducer = .do { [weak self] in
-            guard let self = self,
-                  let output = self.output,
-                  let getState = self.getState
-            else { return }
+    public func handle(action: InputActionType, from dispatcher: ActionSource, state: @escaping GetState<StateType>) -> IO<OutputActionType> {
+        IO { [weak self] output in
+            guard let self = self else { return }
 
             self.bridges
-                .filter { actionBridge in actionBridge.statePredicate(getState, action) }
+                .filter { actionBridge in actionBridge.statePredicate(state, action) }
                 .compactMap { actionBridge in
                     actionBridge
                         .actionTransformation(action)
@@ -219,6 +208,7 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
                         )
                     )
                 }
+
         }
     }
 }
