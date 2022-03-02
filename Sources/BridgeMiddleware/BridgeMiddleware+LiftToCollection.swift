@@ -12,9 +12,10 @@ extension BridgeMiddleware where StateType: Identifiable {
         self.bridges.forEach { bridge in
             mw.bridges.append(
                 BridgeMiddleware<GlobalAction, GlobalAction, GlobalState>.Bridge(
-                    actionTransformation: { (globalInputAction: GlobalAction) -> GlobalAction? in
+                    actionTransformation: { (globalInputAction: GlobalAction, globalState: GetState<GlobalState>) -> GlobalAction? in
                         guard let localElementIDInputAction = actionMap(globalInputAction),
-                              let localOutputAction = bridge.actionTransformation(localElementIDInputAction.action)
+                              let itemState = stateCollection(globalState()).first(where: { $0.id == localElementIDInputAction.id }),
+                              let localOutputAction = bridge.actionTransformation(localElementIDInputAction.action, { itemState })
                         else { return nil }
 
                         return outputMap(.init(id: localElementIDInputAction.id, action: localOutputAction))
@@ -44,9 +45,10 @@ extension BridgeMiddleware where StateType: Identifiable, InputActionType == Out
         self.bridges.forEach { bridge in
             mw.bridges.append(
                 BridgeMiddleware<GlobalAction, GlobalAction, GlobalState>.Bridge(
-                    actionTransformation: { (globalInputAction: GlobalAction) -> GlobalAction? in
+                    actionTransformation: { (globalInputAction: GlobalAction, globalState: GetState<GlobalState>) -> GlobalAction? in
                         guard let localElementIDInputAction = globalInputAction[keyPath: actionMap],
-                              let localOutputAction = bridge.actionTransformation(localElementIDInputAction.action)
+                              let itemState = globalState()[keyPath: stateCollection].first(where: { $0.id == localElementIDInputAction.id }),
+                              let localOutputAction = bridge.actionTransformation(localElementIDInputAction.action, { itemState })
                         else { return nil }
 
                         var newAction = globalInputAction
