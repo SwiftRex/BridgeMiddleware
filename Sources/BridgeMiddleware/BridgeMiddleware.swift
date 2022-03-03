@@ -120,16 +120,14 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
     ///
     /// - Parameters:
     ///   - mapping: an arrow from Input Action and current State resolving and filtering incoming actions to filter for one in particular, to a
-    ///              derived action, such as in `{ action, state in AppAction.another(.tree(.myDerivedAction)) }`.
-    ///   - stateAfterReducerPredicate: optional filter in case the state (after reducer) is not the way you want, for example:
-    ///                                 `{ getState in getState().qa.theStateOfSomething == .active }`
+    ///              derived action, such as in `{ action, state in AppAction.another(.tree(.myDerivedAction)) }` If, after evaluating incoming
+    ///              action and state you decide that you don't want to bridge to another action, simply return nil from the closure.
     ///   - file: file where the bridge happens, most of the times you want this to default to #file
     ///   - line: line where the bridge happens, most of the times you want this to default to #line
     ///   - function: function where the bridge happens, most of the times you want this to default to #function
     /// - Returns: The instance of this middleware itself, modified with the new bridge
     public func bridgeWithState(
         _ mapping: @escaping (InputActionType, GetState<StateType>) -> OutputActionType?,
-        when stateAfterReducerPredicate: @escaping (GetState<StateType>) -> Bool = { _ in true },
         file: String = #file,
         line: UInt = #line,
         function: String = #function
@@ -137,7 +135,7 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
         bridges.append(
             Bridge(
                 actionTransformation: mapping,
-                statePredicate: { state, _ in stateAfterReducerPredicate(state) },
+                statePredicate: { _, _ in true },
                 bridgedAtSource: ActionSource(file: file, function: function, line: line, info: nil)
             )
         )

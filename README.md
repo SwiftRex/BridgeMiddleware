@@ -27,8 +27,8 @@ multiple bridges.
 ```swift
 static let lifecycleToReachabilityActions: BridgeMiddleware =
     BridgeMiddleware()
-        .bridge(\AppAction.lifecycle?.didBecomeActive --> AppAction.reachability(.startMonitoring))
-        .bridge(\AppAction.lifecycle?.didEnterBackground --> AppAction.reachability(.stopMonitoring))
+        .bridge(\AppAction.lifecycle?.didBecomeActive >=> AppAction.reachability(.startMonitoring))
+        .bridge(\AppAction.lifecycle?.didEnterBackground >=> AppAction.reachability(.stopMonitoring))
 ```
 
 In this example, every time your app becomes active, reachability will start monitoring the internet, and when the app enters background,
@@ -142,16 +142,16 @@ With closure:
 ```swift
 static let lifecycleToReachabilityActions: BridgeMiddleware =
     BridgeMiddleware()
-        .bridge(\AppAction.lifecycle?.didBecomeActive --> AppAction.reachability(.startMonitoring), when: { $0().settings.reachabilityOptions == .always })
-        .bridge(\AppAction.lifecycle?.didEnterBackground --> AppAction.reachability(.stopMonitoring), when: { $0().settings.reachabilityOptions == .always })
+        .bridge(\AppAction.lifecycle?.didBecomeActive >=> AppAction.reachability(.startMonitoring), when: { $0().settings.reachabilityOptions == .always })
+        .bridge(\AppAction.lifecycle?.didEnterBackground >=> AppAction.reachability(.stopMonitoring), when: { $0().settings.reachabilityOptions == .always })
 ```
 
 With KeyPath:
 ```swift
 static let lifecycleToReachabilityActions: BridgeMiddleware =
     BridgeMiddleware()
-        .bridge(\AppAction.lifecycle?.didBecomeActive --> AppAction.reachability(.startMonitoring), when: \.settings.shouldUseReachability)
-        .bridge(\AppAction.lifecycle?.didEnterBackground --> AppAction.reachability(.stopMonitoring), when: \.settings.shouldUseReachability)
+        .bridge(\AppAction.lifecycle?.didBecomeActive >=> AppAction.reachability(.startMonitoring), when: \.settings.shouldUseReachability)
+        .bridge(\AppAction.lifecycle?.didEnterBackground >=> AppAction.reachability(.stopMonitoring), when: \.settings.shouldUseReachability)
 ```
 
 ## Bridging values
@@ -159,8 +159,8 @@ static let lifecycleToReachabilityActions: BridgeMiddleware =
 If the original action holds certain value in its enum, you can optionally handover this associated value to the derived action, such as:
 ```swift
 BridgeMiddleware()
-    .bridge(\AppAction.my?.tree?.originalActionThatHasString --> { handedOverString in AppAction.another(.part(.thisRequiredString(handedOverString))) })
+    .bridge(\AppAction.my?.tree?.originalActionThatHasString >=> { handedOverString in AppAction.another(.part(.thisRequiredString(handedOverString))) })
 ```
 
 To avoid the closure you can use custom operators in Swift, like `>>>` and `<<<`, just be sure that your forward/backward composition operator has higher
-precedence than the arrow `-->`, otherwise you will have to use parentheses.
+precedence than the arrow `>=>`, otherwise you will have to use parentheses.
