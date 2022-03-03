@@ -79,7 +79,7 @@ public func >=> <A, B, C>(_ left: @escaping (A) -> B?, _ right: @escaping (B) ->
 
 public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: MiddlewareProtocol {
     struct Bridge {
-        let actionTransformation: (InputActionType) -> OutputActionType?
+        let actionTransformation: (InputActionType, GetState<StateType>) -> OutputActionType?
         let statePredicate: (GetState<StateType>, InputActionType) -> Bool
         let bridgedAtSource: ActionSource
     }
@@ -91,15 +91,8 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
     /// Bridge an action to another derived action
     ///
     /// - Parameters:
-    ///   - mapping: an arrow from KeyPath resolving and filtering incoming actions to filter for one in particular, to a derived action,
-    ///              such as in `\AppAction.some?.tree?.myObservedAction >=> AppAction.another(.tree(.myDerivedAction))`. Please notice only
-    ///              the left part is KeyPath. If you want to transfer some associated value from the original to the derived action, this is
-    ///              possible either using closure: `\AppAction.some?.tree?.myObservedAction >=> { AppAction.another(.tree(.myDerivedAction($0))) }`
-    ///              where `$0` is whatever `myObservedAction` holds, or using function composition:
-    ///              `\AppAction.some?.tree?.myObservedAction >=> (SomethingInTree.myDerivedAction >>> Another.tree >>> AppAction.another)`
-    ///              In case the original action holds an associated value that you don't want for the derived action, you can ignore it:
-    ///              `\AppAction.some?.tree?.myObservedAction >=> (ignore >>> AppAction.another(.tree(.myDerivedAction)))`.
-    ///              This can be totally customised as well, such as `{ (originalAction: InputActionType) -> OutputActionType? in ... }`
+    ///   - mapping: an arrow from Input Action resolving and filtering incoming actions to filter for one in particular, to a
+    ///              derived action, such as in `{ action in AppAction.another(.tree(.myDerivedAction)) }`.
     ///   - stateAfterReducerPredicate: optional filter in case the state (after reducer) is not the way you want, for example:
     ///                                 `{ getState in getState().qa.theStateOfSomething == .active }`
     ///   - file: file where the bridge happens, most of the times you want this to default to #file
@@ -108,6 +101,34 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
     /// - Returns: The instance of this middleware itself, modified with the new bridge
     public func bridge(
         _ mapping: @escaping (InputActionType) -> OutputActionType?,
+        when stateAfterReducerPredicate: @escaping (GetState<StateType>) -> Bool = { _ in true },
+        file: String = #file,
+        line: UInt = #line,
+        function: String = #function
+    ) -> BridgeMiddleware {
+        bridges.append(
+            Bridge(
+                actionTransformation: { action, _ in mapping(action) },
+                statePredicate: { state, _ in stateAfterReducerPredicate(state) },
+                bridgedAtSource: ActionSource(file: file, function: function, line: line, info: nil)
+            )
+        )
+        return self
+    }
+
+    /// Bridge an action to another derived action
+    ///
+    /// - Parameters:
+    ///   - mapping: an arrow from Input Action and current State resolving and filtering incoming actions to filter for one in particular, to a
+    ///              derived action, such as in `{ action, state in AppAction.another(.tree(.myDerivedAction)) }`.
+    ///   - stateAfterReducerPredicate: optional filter in case the state (after reducer) is not the way you want, for example:
+    ///                                 `{ getState in getState().qa.theStateOfSomething == .active }`
+    ///   - file: file where the bridge happens, most of the times you want this to default to #file
+    ///   - line: line where the bridge happens, most of the times you want this to default to #line
+    ///   - function: function where the bridge happens, most of the times you want this to default to #function
+    /// - Returns: The instance of this middleware itself, modified with the new bridge
+    public func bridgeWithState(
+        _ mapping: @escaping (InputActionType, GetState<StateType>) -> OutputActionType?,
         when stateAfterReducerPredicate: @escaping (GetState<StateType>) -> Bool = { _ in true },
         file: String = #file,
         line: UInt = #line,
@@ -189,7 +210,7 @@ public class BridgeMiddleware<InputActionType, OutputActionType, StateType>: Mid
                 .filter { actionBridge in actionBridge.statePredicate(state, action) }
                 .compactMap { actionBridge in
                     actionBridge
-                        .actionTransformation(action)
+                        .actionTransformation(action, state)
                         .map { derivedAction in (derivedAction, actionBridge.bridgedAtSource) }
                 }
                 .forEach { derivedAction, bridgedAtSource in
